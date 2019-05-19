@@ -16,10 +16,16 @@ final class FileReaderTests: XCTestCase {
         let thirdLine = fileReader.readLine()
         XCTAssertNil(thirdLine)
     }
+    
+    func testLineCount() throws {
+        let string = "test1\ntest2"
+        let fileReader = try FileReader(string: string)
+        XCTAssertEqual(fileReader.lineCount(), 2)
+    }
 
     static var allTests = [
         ("testFileRead", testFileRead),
         ("testStringRead", testStringRead),
-        
+        ("testLineCount", testLineCount)
     ]
 }

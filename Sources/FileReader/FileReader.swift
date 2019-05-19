@@ -71,6 +71,59 @@ public class FileReader {
             }
         }
     }
+    
+    public func lineCount() -> Int {
+        
+        // if initialized from a file handle create temporary buffer and restore back to old state when finished
+        if let fileHandle = self.fileHandle {
+            let oldBuffer = buffer
+            let oldIsAtEOF = isAtEOF
+            
+            self.buffer = Data(capacity: self.chunkSize)
+            self.isAtEOF = false
+            
+            var lineCount = 0
+            
+            while !self.isAtEOF {
+                if let range = buffer.range(of: self.delimPattern, options: [], in: buffer.startIndex..<buffer.endIndex) {
+                    buffer.replaceSubrange(buffer.startIndex..<range.upperBound, with: [])
+                    lineCount += 1
+                } else {
+                    let temporaryData = fileHandle.readData(ofLength: self.chunkSize)
+                    if temporaryData.count == 0 {
+                        self.isAtEOF = true
+                        if self.buffer.count > 0 {
+                            lineCount += 1
+                        }
+                    }
+                    buffer.append(temporaryData)
+                }
+            }
+            
+            
+            // reset to previous state
+            self.buffer = oldBuffer
+            self.isAtEOF = oldIsAtEOF
+            
+            return lineCount
+        } else { // if initialized from string, just count occurences in current buffer
+            var lineCount = 0
+            
+            while !self.isAtEOF {
+                if let range = self.buffer.range(of: self.delimPattern, options: [], in: buffer.startIndex..<buffer.endIndex) {
+                    buffer.replaceSubrange(buffer.startIndex..<range.upperBound, with: [])
+                    lineCount += 1
+                } else {
+                    self.isAtEOF = true
+                    if buffer.count > 0 {
+                        lineCount += 1
+                    }
+                }
+            }
+            
+            return lineCount
+        }
+    }
 }
 
 enum FileReaderError: Error {

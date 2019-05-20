@@ -40,11 +40,22 @@ final class FileReaderTests: XCTestCase {
         _ = fileReader2.readLine()
         XCTAssertEqual(fileReader2.linesLeft(), 2)
     }
+    
+    func testReset() throws {
+        let string = "test1\ntest2"
+        let fileReader = try FileReader(string: string)
+        let line1 = fileReader.readLine()
+        XCTAssertEqual("test1", line1)
+        fileReader.reset()
+        let line2 = fileReader.readLine()
+        XCTAssertEqual("test1", line2)
+    }
 
     static var allTests = [
         ("testFileRead", testFileRead),
         ("testStringRead", testStringRead),
         ("testLineCount", testLineCount),
-        ("testLinesLeft", testLinesLeft)
+        ("testLinesLeft", testLinesLeft),
+        ("testReset", testReset)
     ]
 }

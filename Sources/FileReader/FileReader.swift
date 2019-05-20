@@ -10,6 +10,25 @@ public class FileReader {
     public let encoding: String.Encoding
     private var isAtEOF: Bool = false
     
+    /*var offsetInFile: UInt64 { // not sure if we want to implement this
+        get {
+            if let fileHandle = self.fileHandle {
+                return fileHandle.offsetInFile
+            } else if let bufferIndex = self.bufferIndex {
+                return UInt64(bufferIndex)
+            }
+        }
+        set(newValue) {
+            if let _ = self.fileHandle {
+                self.fileHandle!.seek(toFileOffset: newValue)
+            } else if let _ = self.bufferIndex {
+                self.bufferIndex = Int(newValue)
+            } else {
+                fatalError("Neither filehandle nor bufferindex is found. But one or the other should be created when working with a file or direct string.")
+            }
+        }
+    }*/
+    
     @inlinable
     public convenience init(fileAtPath path: String, delimiter: String = "\n", chunkSize: Int = 4096, encoding: String.Encoding = .utf8) throws {
         let url = URL(fileURLWithPath: path)
@@ -223,8 +242,33 @@ public class FileReader {
             fatalError("Neither filehandle nor bufferindex is found. But one or the other should be created when working with a file or direct string.")
         }
     }
+    
+    public func reset() {
+        if let fileHandle = self.fileHandle {
+            self.isAtEOF = false
+            
+            fileHandle.seek(toFileOffset: 0)
+            
+            self.buffer = Data(capacity: self.chunkSize)
+            
+            self.buffer = fileHandle.readData(ofLength: self.chunkSize)
+            if self.buffer.count == 0 {
+                self.isAtEOF = true
+            }
+        } else if let _ = self.bufferIndex {
+            self.isAtEOF = false
+            
+            self.bufferIndex = 0
+            if self.buffer.count == 0 {
+                self.isAtEOF = true
+            }
+        } else {
+            fatalError("Neither filehandle nor bufferindex is found. But one or the other should be created when working with a file or direct string.")
+        }
+    }
 }
 
 enum FileReaderError: Error {
     case cannotCreateDataFromString
+    case noFileHandleOrBufferIndexFound // needs better error handling
 }

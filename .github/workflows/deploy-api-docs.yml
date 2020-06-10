@@ -1,0 +1,27 @@
+
+name: deploy-api-docs
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy-api-docs:
+    name: api.vapor.codes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: generate api documentation
+        uses: SwiftDocOrg/swift-doc@master
+        with:
+          inputs: "Sources"
+          module-name: MyLibrary
+          output: "Documentation"
+      - name: copy generated documentation via ssh password
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          source: "Documentation/*"
+          target: "docs"

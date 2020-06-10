@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
+      - name: set tag environment variable
+        run: echo ::set-env name=TAG_VERSION::${GITHUB_REF#refs/*/}
       - name: generate api documentation
         uses: SwiftDocOrg/swift-doc@master
         with:
@@ -24,4 +25,4 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           source: "Documentation/*"
-          target: "docs"
+          target: "docs/${{ env.TAG_VERSION }}"
